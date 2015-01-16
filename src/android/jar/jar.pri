@@ -16,7 +16,8 @@ JAVASOURCES += \
     $$PATHPREFIX/QtSurface.java \
     $$PATHPREFIX/ExtractStyle.java \
     $$PATHPREFIX/QtPopupMenu.java \
-    $$PATHPREFIX/QtPopupMenu14.java
+    $$PATHPREFIX/QtPopupMenu14.java \
+    $$PATHPREFIX/QtServiceDelegate.java
 
 # install
 target.path = $$[QT_INSTALL_PREFIX]/jar
