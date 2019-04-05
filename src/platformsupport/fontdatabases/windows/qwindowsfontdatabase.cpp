@@ -63,6 +63,7 @@
 #    include <dwrite.h>
 #  endif
 #  include <d2d1.h>
+#  include "qwindowsdirectwritefontdatabase_p.h"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -73,40 +74,6 @@ Q_LOGGING_CATEGORY(lcQpaFonts, "qt.qpa.fonts")
 // ### fixme: Consider direct linking of dwrite.dll once Windows Vista pre SP2 is dropped (QTBUG-49711)
 
 typedef HRESULT (WINAPI *DWriteCreateFactoryType)(DWRITE_FACTORY_TYPE, const IID &, IUnknown **);
-
-static inline DWriteCreateFactoryType resolveDWriteCreateFactory()
-{
-    QSystemLibrary library(QStringLiteral("dwrite"));
-    QFunctionPointer result = library.resolve("DWriteCreateFactory");
-    if (Q_UNLIKELY(!result)) {
-        qWarning("Unable to load dwrite.dll");
-        return nullptr;
-    }
-    return reinterpret_cast<DWriteCreateFactoryType>(result);
-}
-
-static void createDirectWriteFactory(IDWriteFactory **factory)
-{
-    *factory = nullptr;
-
-    static const DWriteCreateFactoryType dWriteCreateFactory = resolveDWriteCreateFactory();
-    if (!dWriteCreateFactory)
-        return;
-
-    IUnknown *result = NULL;
-#if defined(QT_USE_DIRECTWRITE2)
-    dWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory2), &result);
-#endif
-
-    if (result == NULL) {
-        if (FAILED(dWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), &result))) {
-            qErrnoWarning("DWriteCreateFactory failed");
-            return;
-        }
-    }
-
-    *factory = static_cast<IDWriteFactory *>(result);
-}
 
 static inline bool useDirectWrite(QFont::HintingPreference hintingPreference,
                                   const QString &familyName = QString(),
@@ -540,7 +507,7 @@ namespace {
     public:
         CustomFontFileLoader() : m_directWriteFontFileLoader(nullptr)
         {
-            createDirectWriteFactory(&m_directWriteFactory);
+            QWindowsDirectWriteFontDatabase::createDirectWriteFactory(&m_directWriteFactory);
 
             if (m_directWriteFactory) {
                 m_directWriteFontFileLoader = new DirectWriteFontFileLoader();
@@ -648,7 +615,7 @@ qreal QWindowsFontDatabase::fontSmoothingGamma()
 static inline bool initDirectWrite(QWindowsFontEngineData *d)
 {
     if (!d->directWriteFactory) {
-        createDirectWriteFactory(&d->directWriteFactory);
+        QWindowsDirectWriteFontDatabase::createDirectWriteFactory(&d->directWriteFactory);
         if (!d->directWriteFactory)
             return false;
     }

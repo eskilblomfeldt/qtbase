@@ -24,8 +24,11 @@ qtConfig(directwrite):qtConfig(direct2d) {
     }
     QMAKE_USE_PRIVATE += d2d1
 
-    SOURCES += $$PWD/qwindowsfontenginedirectwrite.cpp
-    HEADERS += $$PWD/qwindowsfontenginedirectwrite_p.h
+    SOURCES += $$PWD/qwindowsfontenginedirectwrite.cpp \
+               $$PWD/qwindowsdirectwritefontdatabase.cpp
+
+    HEADERS += $$PWD/qwindowsfontenginedirectwrite_p.h \
+               $$PWD/qwindowsdirectwritefontdatabase_p.h
 } else {
     DEFINES *= QT_NO_DIRECTWRITE
 }
